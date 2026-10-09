@@ -72,7 +72,7 @@ def main(ipAddr='127.0.0.1', portNum=12000, name='alice', nPkt=4, sleepTime=0.2,
             message, client_address = server_socket.recvfrom(65535)  # will read until buffer empty or 65525 bytes
             print(f'Received: {message.decode()} from {client_address}')
             if(doBeep):
-                play_tone(frequency=1000, duration=0.1)
+                play_tone(frequency=1000, duration=0.4)
             if(ipAddr != ""):
                 for i in range(nPkt):
                     reply = f'server {name} received "{message.decode().upper()}" #{i}'.encode()
