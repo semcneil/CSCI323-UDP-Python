@@ -12,6 +12,37 @@ since all computers have this set as localhost.
 from socket import *
 import argparse
 
+# import beep generation if sound is available
+try:
+    import sounddevice as sd   # for creating beep
+except OSError:  # catch if audio not available (like on virtual host)
+    def play_tone(frequency=1000, duration=0.2, sample_rate=44100):
+        pass
+else: 
+    import numpy as np         # for creating beep
+
+    def play_tone(frequency=1000, duration=0.2, sample_rate=44100):
+        """Generates and plays a pure sine wave beep entirely in memory.
+
+            Parameters
+            ----------
+            frequency : int
+                Frequency of sine wave for beep
+            duration : float
+                How long to beep for in seconds
+            sample_rate : int
+                How fast to sample the sine wave
+        """
+        # Calculate the time steps
+        t = np.linspace(0, duration, int(sample_rate * duration), False)
+
+        # Generate a pure sine wave (values between -1.0 and 1.0)
+        wave = np.sin(2 * np.pi * frequency * t)
+
+        # Play the array directly out of your speakers
+        sd.play(wave, sample_rate)
+        sd.wait()  # Wait until the sound finishes playing
+
 def main(ipAddr='127.0.0.1', portNum=12001, name='bob', timeout=1):
     """
     main function to run the UDP client.
@@ -44,6 +75,7 @@ def main(ipAddr='127.0.0.1', portNum=12001, name='bob', timeout=1):
             continue
         else:
             print(reply.decode())
+            play_tone(frequency=2000, duration=0.1)
         while(reply):
             try:
                 reply,server_address = client_socket.recvfrom(2048) # max buffer size 2048
@@ -52,6 +84,7 @@ def main(ipAddr='127.0.0.1', portNum=12001, name='bob', timeout=1):
                 break
             else:
                 print(reply.decode())
+                play_tone(frequency=2000, duration=0.1)
     client_socket.close()
 
 if __name__ == "__main__":
