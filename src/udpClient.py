@@ -43,7 +43,7 @@ else:
         sd.play(wave, sample_rate)
         sd.wait()  # Wait until the sound finishes playing
 
-def main(ipAddr='127.0.0.1', portNum=12001, name='bob', timeout=1):
+def main(ipAddr='127.0.0.1', portNum=12001, name='bob', timeout=1, doBeep=True):
     """
     main function to run the UDP client.
 
@@ -57,35 +57,43 @@ def main(ipAddr='127.0.0.1', portNum=12001, name='bob', timeout=1):
         Name to use when documenting or sending to packets
     timeout : float
         Time to wait before assuming no more packets are coming in response
+    doBeep : bool
+        Beeps when receives a packet if True
     """
     server_name = ipAddr
     server_port = portNum
     client_socket = socket(AF_INET, SOCK_DGRAM)
     client_socket.settimeout(timeout)  # timeout after 1 second
-    while(1):
-        message = input('Input message: ')
-        client_socket.sendto(f"client {name} {message}".encode(), (server_name,server_port))
-        if message.lower() == 'bye' or message.lower() == 'quit':
-            print("Quitting")
-            break
-        try:
-            reply,server_address = client_socket.recvfrom(2048) # max buffer size 2048
-        except TimeoutError:
-            print("Receive timed out")
-            continue
-        else:
-            print(reply.decode())
-            play_tone(frequency=2000, duration=0.1)
-        while(reply):
+    try:
+        while(1):
+            message = input('Input message: ')
+            client_socket.sendto(f"client {name} {message}".encode(), (server_name,server_port))
+            if message.lower() == 'bye' or message.lower() == 'quit':
+                print("Quitting")
+                break
             try:
                 reply,server_address = client_socket.recvfrom(2048) # max buffer size 2048
             except TimeoutError:
-                print("Reception timedout")
-                break
+                print("Receive timed out")
+                continue
             else:
                 print(reply.decode())
-                play_tone(frequency=2000, duration=0.1)
-    client_socket.close()
+                if doBeep:
+                    play_tone(frequency=2000, duration=0.1)
+            while(reply):
+                try:
+                    reply,server_address = client_socket.recvfrom(2048) # max buffer size 2048
+                except TimeoutError:
+                    print("Reception timedout")
+                    break
+                else:
+                    print(reply.decode())
+                    if doBeep:
+                        play_tone(frequency=2000, duration=0.1)
+    except KeyboardInterrupt:
+        print("Stopping Client")
+    finally:
+        client_socket.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A simple UDP server. Surround the IP address with double quotes, but leave the port as just an integer.")
@@ -93,5 +101,6 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port", type=int, default=12001, help="The UDP port for the server to attach to")
     parser.add_argument("-n", "--name", default="Bob", help="The name the server gives in the response")
     parser.add_argument("-t", "--timeout", type=float, default=1.0, help="The timeout for waiting for another UDP packet")
+    parser.add_argument("-b", "--beep", action="store_true", help="pass flag to make it beep")
     args = parser.parse_args()
-    main(ipAddr=args.ipaddr, portNum=args.port, name=args.name, timeout=args.timeout)
+    main(ipAddr=args.ipaddr, portNum=args.port, name=args.name, timeout=args.timeout, doBeep=args.beep)
