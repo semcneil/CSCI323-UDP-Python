@@ -79,7 +79,7 @@ def main(ipAddr='127.0.0.1', portNum=12001, name='bob', timeout=1, doBeep=True):
             else:
                 print(reply.decode())
                 if doBeep:
-                    play_tone(frequency=2000, duration=0.1)
+                    play_tone(frequency=2000, duration=0.2)
             while(reply):
                 try:
                     reply,server_address = client_socket.recvfrom(2048) # max buffer size 2048
@@ -89,7 +89,7 @@ def main(ipAddr='127.0.0.1', portNum=12001, name='bob', timeout=1, doBeep=True):
                 else:
                     print(reply.decode())
                     if doBeep:
-                        play_tone(frequency=2000, duration=0.1)
+                        play_tone(frequency=2000, duration=0.2)
     except KeyboardInterrupt:
         print("Stopping Client")
     finally:
